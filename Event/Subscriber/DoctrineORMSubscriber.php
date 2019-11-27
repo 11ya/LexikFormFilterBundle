@@ -70,6 +70,11 @@ class DoctrineORMSubscriber extends AbstractDoctrineSubscriber implements EventS
         $values = $event->getValues();
 
         if (is_object($values['value'])) {
+            $isCollection = $values['value'] instanceof Collection;
+            if ($isCollection && $values['value']->isEmpty()) {
+                return;
+            }
+
             $paramName = $this->generateParameterName($event->getField());
             $filterField = $event->getField();
 
@@ -90,19 +95,17 @@ class DoctrineORMSubscriber extends AbstractDoctrineSubscriber implements EventS
                 }
             }
 
-            if ($values['value'] instanceof Collection) {
+            if ($isCollection) {
                 $ids = array();
 
                 foreach ($values['value'] as $value) {
                     $ids[] = $this->getEntityIdentifier($value, $queryBuilder->getEntityManager());
                 }
 
-                if (count($ids) > 0) {
-                    $event->setCondition(
-                        $expr->in($filterField, ':'.$paramName),
-                        array($paramName => array($ids, Connection::PARAM_INT_ARRAY))
-                    );
-                }
+                $event->setCondition(
+                    $expr->in($filterField, ':'.$paramName),
+                    array($paramName => array($ids, Connection::PARAM_INT_ARRAY))
+                );
             } else {
                 $event->setCondition(
                     $expr->eq($filterField, ':'.$paramName),
