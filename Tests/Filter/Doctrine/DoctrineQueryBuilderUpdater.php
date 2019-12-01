@@ -5,6 +5,7 @@ namespace Lexik\Bundle\FormFilterBundle\Tests\Filter\Doctrine;
 use Doctrine\ORM\QueryBuilder;
 use Lexik\Bundle\FormFilterBundle\Filter\FilterOperands;
 use Lexik\Bundle\FormFilterBundle\Filter\Form\Type\BooleanFilterType;
+use Lexik\Bundle\FormFilterBundle\Tests\Fixtures\Filter\ItemOptionsFilterType;
 use Lexik\Bundle\FormFilterBundle\Tests\TestCase;
 use Lexik\Bundle\FormFilterBundle\Tests\Fixtures\Filter\RangeFilterType;
 use Lexik\Bundle\FormFilterBundle\Tests\Fixtures\Filter\ItemCallbackFilterType;
@@ -317,6 +318,20 @@ abstract class DoctrineQueryBuilderUpdater extends TestCase
         $form->submit(array(
             'name'     => 'hey dude',
             'position' => 99,
+        ));
+
+        $filterQueryBuilder->addFilterConditions($form, $doctrineQueryBuilder);
+        $this->assertEquals($dqls[0], $doctrineQueryBuilder->{$method}());
+    }
+
+    public function createFilterWithEntityTypeEmptyTest($method, array $dqls)
+    {
+        $form = $this->formFactory->create(ItemOptionsFilterType::class);
+        $filterQueryBuilder = $this->initQueryBuilderUpdater();
+
+        $doctrineQueryBuilder = $this->createDoctrineQueryBuilder();
+        $form->submit(array(
+            'name' => 'hey dude',
         ));
 
         $filterQueryBuilder->addFilterConditions($form, $doctrineQueryBuilder);

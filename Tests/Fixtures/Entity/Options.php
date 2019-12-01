@@ -5,6 +5,7 @@ namespace Lexik\Bundle\FormFilterBundle\Tests\Fixtures\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
+ * @ORM\Table("option")
  * @ORM\Entity
  *
  * @author Cédric Girard <c.girard@lexik.fr>

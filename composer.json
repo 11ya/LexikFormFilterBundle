@@ -20,10 +20,11 @@
     "require": {
         "php": ">=5.5.9",
         "doctrine/orm": "^2.4.8",
-        "symfony/framework-bundle": "~2.8|~3.0|^4.0",
-        "symfony/form": "~2.8|~3.0|^4.0"
+        "symfony/form": "~2.8|~3.0|^4.0",
+        "symfony/framework-bundle": "~2.8|~3.0|^4.0"
     },
     "require-dev": {
+        "doctrine/doctrine-bundle": "^1.10",
         "doctrine/mongodb-odm-bundle": "^3.0",
         "phpunit/phpunit": "~5.0|^7.5"
     },

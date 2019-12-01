@@ -2,8 +2,15 @@
 
 namespace Lexik\Bundle\FormFilterBundle\Tests\Filter\Doctrine;
 
+use Doctrine\Bundle\DoctrineBundle\Registry;
 use Lexik\Bundle\FormFilterBundle\Filter\Condition\ConditionBuilderInterface;
+use Lexik\Bundle\FormFilterBundle\Filter\Form\FilterExtension;
 use Lexik\Bundle\FormFilterBundle\Tests\Fixtures\Filter\ItemEmbeddedOptionsFilterType;
+use Symfony\Bridge\Doctrine\Form\DoctrineOrmExtension;
+use Symfony\Component\Form\Extension\Core\CoreExtension;
+use Symfony\Component\Form\FormFactory;
+use Symfony\Component\Form\FormRegistry;
+use Symfony\Component\Form\ResolvedFormTypeFactory;
 
 /**
  * Filter query builder tests.
@@ -12,6 +19,53 @@ use Lexik\Bundle\FormFilterBundle\Tests\Fixtures\Filter\ItemEmbeddedOptionsFilte
  */
 class ORMQueryBuilderUpdaterTest extends DoctrineQueryBuilderUpdater
 {
+    protected $container;
+
+    public function setUp()
+    {
+        parent::setUp();
+
+        $this->container->set('doctrine.orm.default_entity_manager', $this->em);
+    }
+
+    protected function getContainer()
+    {
+        if ($this->container) {
+            return $this->container;
+        }
+
+        return $this->container = parent::getContainer();
+    }
+
+    public function getFormFactory()
+    {
+        $resolvedFormTypeFactory = new ResolvedFormTypeFactory();
+
+        $registery = new FormRegistry(array(
+            new CoreExtension(),
+            new FilterExtension(),
+            new DoctrineOrmExtension(new Registry(
+                $this->getContainer(),
+                array('default' => 'doctrine.dbal.default_connection'),
+                array('default' => 'doctrine.orm.default_entity_manager'),
+                'default',
+                'default'
+            )),
+        ), $resolvedFormTypeFactory);
+
+        $formFactory = new FormFactory($registery, $resolvedFormTypeFactory);
+
+        return $formFactory;
+    }
+
+    protected function initQueryBuilderUpdater()
+    {
+        $updater = parent::initQueryBuilderUpdater();
+        $updater->setParts(array());
+
+        return $updater;
+    }
+
     public function testBuildQuery()
     {
         parent::createBuildQueryTest('getDQL', array(
@@ -198,6 +252,13 @@ class ORMQueryBuilderUpdaterTest extends DoctrineQueryBuilderUpdater
 
         $this->assertEquals($expectedDql, $doctrineQueryBuilder->getDql());
         $this->assertEquals(array('p_opt_rank' => 6), $this->getQueryBuilderParameters($doctrineQueryBuilder));
+    }
+
+    public function testFilterWithAssociationEmptyValue()
+    {
+        parent::createFilterWithEntityTypeEmptyTest('getDQL', array(
+            'SELECT i FROM Lexik\Bundle\FormFilterBundle\Tests\Fixtures\Entity\Item i WHERE i.name LIKE \'%hey dude%\'',
+        ));
     }
 
     protected function createDoctrineQueryBuilder()
